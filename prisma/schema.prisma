@@ -7,11 +7,43 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Example User model
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
+  id          Int         @id @default(autoincrement())
+  name        String
+  email       String      @unique
+  password    String
+  roomUsers   RoomUser[]
+  messages    Message[]
+  ownedRooms  Room[]      @relation("RoomOwner")  
+  createdAt   DateTime    @default(now())
+}
+
+model Room {
+  id        String      @id @default(cuid())
+  name      String?
+  code      String       @unique
+  roomUsers RoomUser[]
+  messages  Message[]
+  ownerId   Int
+  owner     User         @relation("RoomOwner", fields: [ownerId], references: [id])
+  createdAt DateTime     @default(now())
+}
+
+model RoomUser {
+  id        String   @id @default(cuid())
+  userId    Int
+  roomId    String
+  user      User     @relation(fields: [userId], references: [id])
+  room      Room     @relation(fields: [roomId], references: [id])
+  joinedAt  DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  userId    Int
+  roomId    String
+  user      User     @relation(fields: [userId], references: [id])
+  room      Room     @relation(fields: [roomId], references: [id])
   createdAt DateTime @default(now())
 }

@@ -89,4 +89,30 @@ router.post('/join/:roomid',async(req,res)=>{
     }
 })
 
+router.get('/currentroom/:userid', async(req,res)=>{
+    try{
+        const {userid}=req.params;
+        const roomUser= await prisma.roomUser.findFirst({
+            where:{
+                userId:Number(userid),
+            },
+            include: { room: true }
+        })
+
+        if(!roomUser){
+            return res.status(404).json({
+                message:"not joined any room",
+                inRoom: false
+            })
+        }
+
+        return res.status(201).json({ inRoom: true, room: roomUser.room });
+
+    }catch(e){
+        console.log("error during get userroom", e);
+        return res.status(500).json({
+            message:"server error"
+        })
+    }
+})
 export default router;

@@ -4,7 +4,7 @@ export default function socketHandler(io) {
     const roomState={}
 
     io.on("connection", (socket) => {
-        console.log("⚡New user connected:", socket.id);
+        console.log("New user connected:", socket.id);
 
         socket.on('join_room',({roomId})=>{
             if(!roomId) return;
@@ -39,10 +39,23 @@ export default function socketHandler(io) {
             socket.to(roomId).emit("video_action", { action, currentTime });
         });
 
+        socket.on("change_video",({roomId, videoId})=>{
+            if(!roomId || !videoId) return;
+
+                roomState[roomId]={
+                    videoId: videoId,
+                    currentTime: 0,
+                    isPlaying: false,
+                    lastUpdate: Date.now()
+            }
+
+            socket.to(roomId).emit("change_video", { videoId });
+
+        })
 
 
         socket.on("disconnect", () => {
-            console.log("❌ User disconnected:", socket.id);
+            console.log("User disconnected:", socket.id);
         });
   });
 }

@@ -115,4 +115,56 @@ router.get('/currentroom/:userid', async(req,res)=>{
         })
     }
 })
+
+
+//leave room
+router.post('/leave/:roomid', async (req, res) => {
+    try{  
+    const { roomid } = req.params;
+    const { userId } = req.body;
+
+    if (!roomid || !userId) return res.status(400).json({ message: "Missing data" });
+
+    const room = await prisma.room.findUnique({
+        where: { id: roomid },
+        include: {
+        roomUsers: { include: { user: true } },
+        owner: true
+        }
+    });
+
+    if (!room) return res.status(404).json({ message: "Room not found" });
+
+    const isOwner = room.ownerId === Number(userId);
+    await prisma.roomUser.deleteMany({
+        where: { roomId: roomid, userId: Number(userId) }
+    });
+
+    if (isOwner) {
+        const remainingUsers = room.roomUsers
+        .filter(ru => ru.userId !== Number(userId))
+        .map(ru => ru.user);
+
+        if (remainingUsers.length > 0) {
+        await prisma.room.update({
+            where: { id: roomid },
+            data: { ownerId: remainingUsers[0].id }
+        });
+        } else {
+        await prisma.room.delete({ where: { id: roomid } });
+        }
+    }
+
+    return res.status(200).json({ message: "Left room successfully" });
+    }catch(e){
+        console.log("error during leaving room", e);
+        return res.status(500).json({
+            message:"server error"
+        })
+    }
+
+});
+
+
+
 export default router;

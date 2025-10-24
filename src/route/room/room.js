@@ -165,6 +165,50 @@ router.post('/leave/:roomid', async (req, res) => {
 
 });
 
+//join room by code 
+
+router.post('/joinroombycode',async(req,res)=>{
+    try{
+        const {userId, roomCode}=req.body;
+
+        if(!userId || !roomCode){
+            return res.status(404).json({
+                message:"missing credentials"
+            })
+        }
+
+        const room= await prisma.room.findUnique({
+            where:{
+                code:roomCode
+            }
+        })
+
+        if(!room){
+            return res.status(400).json({
+                message:"room doesnot exist / code didnt match"
+            })
+        }
+
+        const userRoom= await prisma.roomUser.create({
+            data:{
+                userId,
+                roomId:room.id
+            }
+        })
+
+        return res.status(201).json({
+            message:"joined room successfully",
+            UserRoom:userRoom,
+            roomJoined:room
+        })
+
+    }catch(e){
+        console.log("error during add join room",e);
+        return res.status(500).json({
+            message:"server error"
+        })
+    }
+})
 
 
 export default router;

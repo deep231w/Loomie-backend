@@ -8,34 +8,36 @@ generator client {
 }
 
 model User {
-  id          Int         @id @default(autoincrement())
-  name        String
-  email       String      @unique
-  password    String
-  roomUsers   RoomUser[]
-  messages    Message[]
-  ownedRooms  Room[]      @relation("RoomOwner")  
-  createdAt   DateTime    @default(now())
+  id         Int        @id @default(autoincrement())
+  name       String
+  email      String     @unique
+  password   String
+  roomUsers  RoomUser[]
+  messages   Message[]
+  ownedRooms Room[]     @relation("RoomOwner")
+  createdAt  DateTime   @default(now())
 }
 
 model Room {
-  id        String      @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String?
-  code      String       @unique
+  code      String     @unique
   roomUsers RoomUser[]
   messages  Message[]
   ownerId   Int
-  owner     User         @relation("RoomOwner", fields: [ownerId], references: [id])
-  createdAt DateTime     @default(now())
+  owner     User       @relation("RoomOwner", fields: [ownerId], references: [id])
+  createdAt DateTime   @default(now())
 }
 
 model RoomUser {
-  id        String   @id @default(cuid())
-  userId    Int
-  roomId    String
-  user      User     @relation(fields: [userId], references: [id])
-  room      Room     @relation(fields: [roomId], references: [id])
-  joinedAt  DateTime @default(now())
+  id       String   @id @default(cuid())
+  userId   Int
+  roomId   String
+  user     User     @relation(fields: [userId], references: [id])
+  room     Room     @relation(fields: [roomId], references: [id])
+  joinedAt DateTime @default(now())
+
+  @@unique([userId, roomId])
 }
 
 model Message {

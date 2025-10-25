@@ -189,6 +189,18 @@ router.post('/joinroombycode',async(req,res)=>{
             })
         }
 
+        const existing = await prisma.roomUser.findFirst({
+            where: { userId, roomId: room.id }
+        })
+
+        if (existing) {
+            return res.status(200).json({
+                message: "User already joined",
+                roomJoined: room
+            })
+        }
+
+
         const userRoom= await prisma.roomUser.create({
             data:{
                 userId,

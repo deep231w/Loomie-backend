@@ -211,7 +211,7 @@ router.post('/joinroombycode',async(req,res)=>{
         return res.status(201).json({
             message:"joined room successfully",
             UserRoom:userRoom,
-            roomJoined:room
+            room:room
         })
 
     }catch(e){

@@ -2,6 +2,7 @@
 export default function socketHandler(io) {
 
     const roomState={}
+    const roomChats={}
 
     io.on("connection", (socket) => {
         console.log("New user connected:", socket.id);
@@ -24,6 +25,8 @@ export default function socketHandler(io) {
             // Send current state to the newly joined user
             const state = roomState[roomId];
             socket.emit("sync_state", state);
+            socket.emit("chat_history", roomChats[roomId]);
+
 
         })
 
@@ -52,6 +55,30 @@ export default function socketHandler(io) {
             socket.to(roomId).emit("change_video", { videoId });
 
         })
+
+        socket.on("send_message", ({ roomId, user, message }) => {
+            if (!roomId || !user || !message) return;
+
+            if (!roomChats[roomId]) roomChats[roomId] = [];
+
+            const msg = {
+                id: Date.now(),
+                user,
+                message,
+                timestamp: new Date().toISOString()
+            };
+
+            roomChats[roomId].push(msg);
+
+            io.to(roomId).emit("new_message", msg);
+        });
+
+
+        socket.on("join_room", ({ roomId }) => {
+            socket.join(roomId);
+            io.to(socket.id).emit("chat_history", roomChats[roomId] || []);
+        });
+
 
 
         socket.on("disconnect", () => {

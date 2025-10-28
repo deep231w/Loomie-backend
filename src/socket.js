@@ -7,7 +7,7 @@ export default function socketHandler(io) {
     io.on("connection", (socket) => {
         console.log("New user connected:", socket.id);
 
-        socket.on('join_room',({roomId})=>{
+        socket.on('join_room',({roomId,user})=>{
             if(!roomId) return;
 
             socket.join(roomId)
@@ -27,6 +27,7 @@ export default function socketHandler(io) {
             socket.emit("sync_state", state);
             socket.emit("chat_history", roomChats[roomId]);
 
+            socket.to(roomId).emit("joined_user", user);
 
         })
 
@@ -72,6 +73,16 @@ export default function socketHandler(io) {
 
             io.to(roomId).emit("new_message", msg);
         });
+
+        socket.on("left_room",({roomId,user})=>{
+            if(!roomId || !user) return;
+
+            if(!roomChats[roomId]) return;
+
+            io.to(roomId).emit("left_user",user);
+        })
+
+
 
 
         socket.on("join_room", ({ roomId }) => {
